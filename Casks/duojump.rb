@@ -1,6 +1,6 @@
 cask "duojump" do
   version "1.0.0"
-  sha256 "0000000000000000000000000000000000000000000000000000000000000000" # TODO: replace with `shasum -a 256` of the v#{version} tag tarball once tagged/pushed
+  sha256 "efd25b915c3a0e1dde7235feb595d328c0e78fc79b027b08cf0ed0578c81ae53"
 
   url "https://github.com/PavlovIvan1/2d-macos-game/archive/refs/tags/v#{version}.tar.gz"
   name "DuoJump"
