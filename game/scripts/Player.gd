@@ -4,9 +4,14 @@ extends CharacterBody2D
 @export var control_scheme: int = GameState.ControlScheme.ARROWS
 var spawn_point: Vector2 = Vector2.ZERO
 
-const SPEED := 220.0
-const JUMP_VELOCITY := -430.0
-const GRAVITY := 1100.0
+const SPEED := 240.0
+const JUMP_VELOCITY := -650.0
+const GRAVITY := 1500.0
+
+# Max jump height = JUMP_VELOCITY^2 / (2*GRAVITY) =~ 141 px.
+# Levels keep plain ledge/step height differences <= 90px (big margin),
+# and gate anything >= 150px behind a crate (crate top ~= +50px of extra
+# reach, so crate + jump clears up to ~190px, comfortably above 150).
 
 func _physics_process(delta: float) -> void:
 	if not is_on_floor():

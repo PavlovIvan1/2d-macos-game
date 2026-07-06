@@ -12,6 +12,9 @@ if [ ! -x "$GODOT_BIN" ]; then
     exit 1
 fi
 
+echo "Importing assets..."
+"$GODOT_BIN" --headless --import --path "$PROJECT_DIR" >/dev/null 2>&1
+
 echo "Assembling $APP_BUNDLE..."
 rm -rf "$APP_BUNDLE"
 mkdir -p "$APP_BUNDLE/Contents/MacOS"

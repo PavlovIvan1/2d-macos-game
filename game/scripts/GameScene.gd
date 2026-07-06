@@ -5,7 +5,14 @@ const PlayerScript := preload("res://scripts/Player.gd")
 const FollowCameraScript := preload("res://scripts/FollowCamera.gd")
 const LevelsScript := preload("res://scripts/Levels.gd")
 
-const PLAYER_SIZE := Vector2(36, 56)
+const TEX_PLAYER1 := preload("res://assets/characters/player1_blue.png")
+const TEX_PLAYER2 := preload("res://assets/characters/player2_pink.png")
+const TEX_GROUND := preload("res://assets/tiles/ground_grass.png")
+const TEX_CRATE := preload("res://assets/tiles/crate.png")
+const TEX_SKY := preload("res://assets/backgrounds/sky.png")
+
+const TILE := 48.0
+const PLAYER_SIZE := Vector2(48, 48)
 const CRATE_SIZE := Vector2(50, 50)
 
 var world: Node2D
@@ -110,7 +117,7 @@ func _configure_camera(cam: FollowCameraScript) -> void:
 # ---------------------------------------------------------------------------
 
 func _populate_world() -> void:
-	world.add_child(_make_parallax(level_data.size, level_data.bg_color))
+	world.add_child(_make_background(level_data.size))
 
 	for rect in level_data.platforms:
 		world.add_child(_make_platform(rect))
@@ -121,10 +128,32 @@ func _populate_world() -> void:
 	world.add_child(_make_goal_marker(level_data.goal))
 	goal_rect = level_data.goal
 
-	player1 = _make_player(GameState.ControlScheme.ARROWS, Color(0.25, 0.55, 0.95), level_data.spawn1)
-	player2 = _make_player(GameState.ControlScheme.WASD, Color(0.95, 0.32, 0.32), level_data.spawn2)
+	player1 = _make_player(GameState.ControlScheme.ARROWS, TEX_PLAYER1, level_data.spawn1)
+	player2 = _make_player(GameState.ControlScheme.WASD, TEX_PLAYER2, level_data.spawn2)
 	world.add_child(player1)
 	world.add_child(player2)
+
+# Tiles `texture` across `area_size` starting at local position `top_left`,
+# scaled so each tile is TILE x TILE world pixels.
+func _tile_grid(parent: Node2D, top_left: Vector2, area_size: Vector2, texture: Texture2D) -> void:
+	var tex_size := texture.get_size()
+	var scale_factor := Vector2(TILE / tex_size.x, TILE / tex_size.y)
+	var cols := int(ceil(area_size.x / TILE))
+	var rows := int(ceil(area_size.y / TILE))
+	for row in range(rows):
+		for col in range(cols):
+			var spr := Sprite2D.new()
+			spr.texture = texture
+			spr.centered = false
+			spr.scale = scale_factor
+			spr.position = top_left + Vector2(col * TILE, row * TILE)
+			parent.add_child(spr)
+
+func _make_background(size: Vector2) -> Node2D:
+	var bg := Node2D.new()
+	bg.z_index = -10
+	_tile_grid(bg, Vector2.ZERO, size, TEX_SKY)
+	return bg
 
 func _make_platform(rect: Rect2) -> StaticBody2D:
 	var body := StaticBody2D.new()
@@ -136,12 +165,7 @@ func _make_platform(rect: Rect2) -> StaticBody2D:
 	coll.shape = shape
 	body.add_child(coll)
 
-	var vis := ColorRect.new()
-	vis.size = rect.size
-	vis.position = -rect.size / 2.0
-	vis.color = Color(0.32, 0.22, 0.16)
-	vis.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_child(vis)
+	_tile_grid(body, -rect.size / 2.0, rect.size, TEX_GROUND)
 
 	return body
 
@@ -161,16 +185,15 @@ func _make_crate(pos: Vector2) -> RigidBody2D:
 	coll.shape = shape
 	body.add_child(coll)
 
-	var vis := ColorRect.new()
-	vis.size = CRATE_SIZE
-	vis.position = -CRATE_SIZE / 2.0
-	vis.color = Color(0.62, 0.44, 0.22)
-	vis.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	body.add_child(vis)
+	var tex_size := TEX_CRATE.get_size()
+	var spr := Sprite2D.new()
+	spr.texture = TEX_CRATE
+	spr.scale = Vector2(CRATE_SIZE.x / tex_size.x, CRATE_SIZE.y / tex_size.y)
+	body.add_child(spr)
 
 	return body
 
-func _make_player(scheme: int, color: Color, spawn: Vector2) -> PlayerScript:
+func _make_player(scheme: int, texture: Texture2D, spawn: Vector2) -> PlayerScript:
 	var p: PlayerScript = PlayerScript.new()
 	p.control_scheme = scheme
 	p.spawn_point = spawn
@@ -182,12 +205,11 @@ func _make_player(scheme: int, color: Color, spawn: Vector2) -> PlayerScript:
 	coll.shape = shape
 	p.add_child(coll)
 
-	var vis := ColorRect.new()
-	vis.size = PLAYER_SIZE
-	vis.position = -PLAYER_SIZE / 2.0
-	vis.color = color
-	vis.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	p.add_child(vis)
+	var tex_size := texture.get_size()
+	var spr := Sprite2D.new()
+	spr.texture = texture
+	spr.scale = Vector2(PLAYER_SIZE.x / tex_size.x, PLAYER_SIZE.y / tex_size.y)
+	p.add_child(spr)
 
 	return p
 
@@ -207,35 +229,6 @@ func _make_goal_marker(rect: Rect2) -> Node2D:
 	marker.add_child(label)
 
 	return marker
-
-func _make_parallax(size: Vector2, base_color: Color) -> ParallaxBackground:
-	var pb := ParallaxBackground.new()
-
-	var far := ParallaxLayer.new()
-	far.motion_scale = Vector2(0.2, 0.2)
-	var far_rect := ColorRect.new()
-	far_rect.color = base_color.lightened(0.2)
-	far_rect.size = Vector2(size.x * 2.0, size.y)
-	far_rect.position = Vector2(-size.x * 0.5, 0)
-	far_rect.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	far.add_child(far_rect)
-	pb.add_child(far)
-
-	var mid := ParallaxLayer.new()
-	mid.motion_scale = Vector2(0.5, 0.5)
-	var hill_count := int(size.x / 280.0) + 2
-	for i in range(hill_count):
-		var hill := ColorRect.new()
-		hill.color = base_color.lightened(0.08)
-		var w: float = 160.0 + (i % 3) * 40.0
-		var h: float = 70.0 + (i % 4) * 20.0
-		hill.size = Vector2(w, h)
-		hill.position = Vector2(i * 280.0 - 140.0, size.y - h)
-		hill.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		mid.add_child(hill)
-	pb.add_child(mid)
-
-	return pb
 
 # ---------------------------------------------------------------------------
 # Pause / level complete

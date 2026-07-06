@@ -30,6 +30,7 @@ Installs Godot (if you don't already have it) plus DuoJump into `/Applications`,
 ```bash
 git clone git@github.com:PavlovIvan1/2d-macos-game.git
 cd 2d-macos-game
+godot --headless --import --path game   # one-time: import the art assets
 godot --path game
 ```
 
@@ -39,6 +40,10 @@ godot --path game
 ./build_app.sh
 open DuoJump.app
 ```
+
+## Credits
+
+Art: [Kenney's "Pixel Platformer"](https://kenney.nl/assets/pixel-platformer) pack (CC0, no attribution required — credited anyway because it's nice art). See `game/assets/KENNEY_LICENSE.txt`.
 
 ## License
 

@@ -23,6 +23,10 @@ cask "duojump" do
 
     godot_bin = "/Applications/Godot.app/Contents/MacOS/Godot"
 
+    system_command godot_bin,
+                   args: ["--headless", "--import", "--path", game_dir.to_s],
+                   print_stdout: true
+
     File.write(app_dir/"Contents/MacOS/DuoJump", <<~SCRIPT)
       #!/bin/bash
       DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
