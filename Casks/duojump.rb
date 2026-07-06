@@ -1,6 +1,6 @@
 cask "duojump" do
-  version "1.0.0"
-  sha256 "efd25b915c3a0e1dde7235feb595d328c0e78fc79b027b08cf0ed0578c81ae53"
+  version "1.1.0"
+  sha256 "3c9682f948ead933d9fb17e98f49b13a3006f20172ea2266c61e2f6b272f89ea"
 
   url "https://github.com/PavlovIvan1/2d-macos-game/archive/refs/tags/v#{version}.tar.gz"
   name "DuoJump"
